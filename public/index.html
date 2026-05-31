@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>材料科学综合模拟平台 - 相图 | TTT | 杠杆定律 | 硬度预测</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 15px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+        .tab-btn.active {
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            border-color: transparent;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .panel-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        canvas {
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            background: #0a0a1a;
+        }
+        .info-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .info-item {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .info-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .phase-info {
+            grid-column: span 2;
+            background: rgba(123, 47, 247, 0.2);
+            border: 1px solid rgba(123, 47, 247, 0.3);
+        }
+        .phase-composition {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        .note-input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            margin-top: 10px;
+            resize: vertical;
+            min-height: 50px;
+        }
+        .learning-records {
+            margin-top: 15px;
+            grid-column: span 2;
+        }
+        .records-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .record-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .record-info {
+            font-size: 12px;
+        }
+        .record-note {
+            color: #aaa;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        .record-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-right: 5px;
+        }
+        .type-phase { background: #00d4ff; }
+        .type-ttt { background: #7b2ff7; }
+        .type-lever { background: #ffd93d; color: #333; }
+        .type-hardness { background: #ff6b6b; }
+        .instruction {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        .slider-container {
+            margin: 10px 0;
+        }
+        .slider-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            cursor: pointer;
+        }
+        .hardness-display {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(123, 47, 247, 0.2));
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        .hardness-value {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hardness-unit {
+            font-size: 18px;
+            color: #888;
+        }
+        .exercise-panel {
+            background: rgba(255, 217, 61, 0.1);
+            border: 1px solid rgba(255, 217, 61, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .exercise-question {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #ffd93d;
+        }
+        .answer-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid rgba(123, 47, 247, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+        .result-feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .correct {
+            background: rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+        }
+        .incorrect {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+        .diagram-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .diagram-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .diagram-btn.active {
+            background: #00d4ff;
+            color: #333;
+            font-weight: bold;
+        }
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .learning-records {
+                grid-column: span 1;
+            }
+        }
+        .cooling-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 材料科学综合模拟平台</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="pb-sn">Pb-Sn 相图</button>
+            <button class="tab-btn" data-tab="fe-c">Fe-C 铁碳相图</button>
+            <button class="tab-btn" data-tab="ttt">TTT 曲线与冷却</button>
+            <button class="tab-btn" data-tab="lever">杠杆定律练习</button>
+            <button class="tab-btn" data-tab="hardness">硬度预测</button>
+        </div>
+
+        <div id="pb-sn" class="tab-content active">
+            <div class="main-content">
+                <div class="panel">
+                    <div class="panel-title">📊 Pb-Sn 二元合金相图</div>
+                    <p class="instruction">在相图上移动鼠标或点击查看相组成和微观组织</p>
+                    <div class="canvas-wrapper">
+                        <canvas id="phaseDiagram" width="500" height="380"></canvas>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color" style="background: #ff6b6b;"></div><span>液相 (L)</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #4ecdc4;"></div><span>L + α</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #45b7d1;"></div><span>L + β</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #96ceb4;"></div><span>α + β 共晶</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🔬 微观组织模拟</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="microstructure" width="500" height="380"></canvas>
+                    </div>
+                    <div class="info-display">
+                        <div class="info-item"><div class="info-label">温度 (°C)</div><div class="info-value" id="tempDisplay">200</div></div>
+                        <div class="info-item"><div class="info-label">Sn 成分 (wt%)</div><div class="info-value" id="compDisplay">50</div></div>
+                        <div class="info-item phase-info">
+                            <div class="info-label">相组成</div>
+                            <div class="phase-composition" id="phaseDisplay">移动鼠标查看相组成...</div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <input type="text" class="note-input" id="noteInput" placeholder="添加学习笔记...">
+                        <button class="btn btn-primary" id="saveBtn">💾 保存记录</button>
+                        <button class="btn btn-secondary" id="clearBtn">🔄 重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fe-c" class="tab-content">
+            <div class="main-content">
+                <div class="panel">
+                    <div class="panel-title">📊 Fe-C 铁碳合金相图</div>
+                    <p class="instruction">在相图上移动鼠标或点击查看相组成和相变过程</p>
+                    <div class="canvas-wrapper">
+                        <canvas id="feCDiagram" width="500" height="380"></canvas>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color" style="background: #ff6b6b;"></div><span>液相 L</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #4ecdc4;"></div><span>δ + L</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #ffd93d;"></div><span>γ 奥氏体</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background: #7b2ff7;"></div><span>α + Fe₃C</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🔬 钢铁微观组织</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="feCMicrostructure" width="500" height="380"></canvas>
+                    </div>
+                    <div class="info-display">
+                        <div class="info-item"><div class="info-label">温度 (°C)</div><div class="info-value" id="feCTempDisplay">800</div></div>
+                        <div class="info-item"><div class="info-label">C 成分 (wt%)</div><div class="info-value" id="feCCompDisplay">0.4</div></div>
+                        <div class="info-item phase-info">
+                            <div class="info-label">相组成</div>
+                            <div class="phase-composition" id="feCPhaseDisplay">移动鼠标查看相组成...</div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <input type="text" class="note-input" id="feCNoteInput" placeholder="添加学习笔记...">
+                        <button class="btn btn-primary" id="feCSaveBtn">💾 保存记录</button>
+                        <button class="btn btn-secondary" id="feCClearBtn">🔄 重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ttt" class="tab-content">
+            <div class="main-content">
+                <div class="panel">
+                    <div class="panel-title">📊 TTT 曲线（等温转变曲线）</div>
+                    <p class="instruction">拖动滑块调整冷却速度，观察组织转变</p>
+                    <div class="canvas-wrapper">
+                        <canvas id="tttDiagram" width="500" height="380"></canvas>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>冷却速度</span>
+                            <span id="coolingRateValue">10 °C/s</span>
+                        </div>
+                        <input type="range" id="coolingRateSlider" min="1" max="100" value="10">
+                    </div>
+                    <div class="animation-controls">
+                        <button class="btn btn-primary" id="startCoolingBtn">▶️ 开始冷却</button>
+                        <button class="btn btn-secondary" id="resetCoolingBtn">🔄 重置</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">🔬 冷却组织与性能</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="tttMicrostructure" width="500" height="380"></canvas>
+                    </div>
+                    <div class="info-display">
+                        <div class="info-item"><div class="info-label">冷却速度</div><div class="info-value" id="tttCoolingDisplay">10 °C/s</div></div>
+                        <div class="info-item"><div class="info-label">当前温度</div><div class="info-value" id="tttTempDisplay">900 °C</div></div>
+                        <div class="info-item phase-info">
+                            <div class="info-label">转变产物</div>
+                            <div class="phase-composition" id="tttPhaseDisplay">准备冷却...</div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <input type="text" class="note-input" id="tttNoteInput" placeholder="添加学习笔记...">
+                        <button class="btn btn-primary" id="tttSaveBtn">💾 保存记录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="lever" class="tab-content">
+            <div class="main-content">
+                <div class="panel">
+                    <div class="panel-title">📊 杠杆定律示意图</div>
+                    <p class="instruction">在图上选择成分点，计算两相相对含量</p>
+                    <div class="canvas-wrapper">
+                        <canvas id="leverDiagram" width="500" height="380"></canvas>
+                    </div>
+                    <div class="diagram-selector">
+                        <button class="diagram-btn active" data-type="eutectic">共晶系</button>
+                        <button class="diagram-btn" data-type="eutectoid">共析系</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">✏️ 杠杆定律计算练习</div>
+                    <div class="exercise-panel">
+                        <div class="exercise-question" id="exerciseQuestion">
+                            问题：已知共晶合金成分为 C₀ = 50%，α相成分为 C<sub>α</sub> = 20%，β相成分为 C<sub>β</sub> = 80%，<br>
+                            请计算 α 相和 β 相的质量分数（W<sub>α</sub> 和 W<sub>β</sub>）。
+                        </div>
+                        <div class="info-display">
+                            <div class="info-item">
+                                <div class="info-label">W<sub>α</sub> (%)</div>
+                                <input type="number" class="answer-input" id="waInput" placeholder="输入答案">
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">W<sub>β</sub> (%)</div>
+                                <input type="number" class="answer-input" id="wbInput" placeholder="输入答案">
+                            </div>
+                        </div>
+                        <div class="controls" style="justify-content: center;">
+                            <button class="btn btn-primary" id="checkAnswerBtn">✅ 检查答案</button>
+                            <button class="btn btn-secondary" id="showAnswerBtn">💡 显示答案</button>
+                            <button class="btn btn-secondary" id="newExerciseBtn">🔄 新题目</button>
+                        </div>
+                        <div id="answerFeedback"></div>
+                    </div>
+                    <div class="info-display">
+                        <div class="info-item phase-info">
+                            <div class="info-label">公式提示</div>
+                            <div class="phase-composition">
+                                W<sub>α</sub> = (C<sub>β</sub> - C₀) / (C<sub>β</sub> - C<sub>α</sub>) × 100%<br>
+                                W<sub>β</sub> = (C₀ - C<sub>α</sub>) / (C<sub>β</sub> - C<sub>α</sub>) × 100%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <input type="text" class="note-input" id="leverNoteInput" placeholder="添加学习笔记...">
+                        <button class="btn btn-primary" id="leverSaveBtn">💾 保存练习记录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="hardness" class="tab-content">
+            <div class="main-content">
+                <div class="panel">
+                    <div class="panel-title">⚙️ 材料参数设置</div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>碳含量 (wt%)</span>
+                            <span id="carbonValue">0.4 %</span>
+                        </div>
+                        <input type="range" id="carbonSlider" min="0.1" max="1.2" step="0.1" value="0.4">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>冷却速度 (°C/s)</span>
+                            <span id="hardnessCoolingValue">20 °C/s</span>
+                        </div>
+                        <input type="range" id="hardnessCoolingSlider" min="0.1" max="100" value="20">
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>回火温度 (°C)</span>
+                            <span id="temperValue">200 °C</span>
+                        </div>
+                        <input type="range" id="temperSlider" min="100" max="600" value="200">
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="hardnessChart" width="500" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📊 硬度预测结果</div>
+                    <div class="hardness-display">
+                        <div class="hardness-value" id="hardnessValue">285</div>
+                        <div class="hardness-unit">HV (维氏硬度)</div>
+                    </div>
+                    <div class="info-display">
+                        <div class="info-item"><div class="info-label">马氏体含量</div><div class="info-value" id="martensiteDisplay">65 %</div></div>
+                        <div class="info-item"><div class="info-label">贝氏体含量</div><div class="info-value" id="bainiteDisplay">25 %</div></div>
+                        <div class="info-item"><div class="info-label">珠光体含量</div><div class="info-value" id="pearliteDisplay">10 %</div></div>
+                        <div class="info-item"><div class="info-label">抗拉强度 (估算)</div><div class="info-value" id="tsDisplay">950 MPa</div></div>
+                        <div class="info-item phase-info">
+                            <div class="info-label">组织组成</div>
+                            <div class="phase-composition" id="microstructureDisplay">马氏体 + 贝氏体 + 少量珠光体</div>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="hardnessMicrostructure" width="500" height="200"></canvas>
+                    </div>
+                    <div class="controls">
+                        <input type="text" class="note-input" id="hardnessNoteInput" placeholder="添加学习笔记...">
+                        <button class="btn btn-primary" id="hardnessSaveBtn">💾 保存预测记录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel learning-records">
+            <div class="panel-title">📚 学习记录档案</div>
+            <div class="controls">
+                <button class="btn btn-secondary" id="loadRecordsBtn">📖 加载记录</button>
+                <button class="btn btn-danger" id="clearRecordsBtn">🗑️ 清空记录</button>
+            </div>
+            <div class="records-list" id="recordsList">
+                <div style="text-align: center; color: #888; padding: 20px;">暂无学习记录，开始探索材料科学吧！</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

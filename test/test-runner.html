@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相图计算测试运行器 - 材料科学</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .btn-warning {
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+            color: white;
+        }
+        .summary-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .pass-rate {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .test-categories {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .test-category {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+        }
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .category-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .category-result {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .test-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .test-item {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .test-item:hover {
+            transform: translateX(5px);
+        }
+        .test-pass {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid #2ecc71;
+        }
+        .test-fail {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+        }
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .test-message {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        @media (max-width: 768px) {
+            .summary-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .test-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 相图计算测试运行器</h1>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runAllTests()">▶️ 运行所有测试</button>
+            <button class="btn btn-success" onclick="runPbSnTests()">📊 Pb-Sn 相图测试</button>
+            <button class="btn btn-success" onclick="runFeCTests()">⚙️ Fe-C 相图测试</button>
+            <button class="btn btn-success" onclick="runLeverLawTests()">⚖️ 杠杆定律测试</button>
+            <button class="btn btn-warning" onclick="runCALPHADTests()">🔬 CALPHAD 热力学测试</button>
+        </div>
+        
+        <div class="summary-panel" id="summaryPanel">
+            <div style="text-align: center; color: #888; padding: 30px;">
+                点击上方按钮开始运行测试
+            </div>
+        </div>
+        
+        <div class="test-categories" id="testResults">
+        </div>
+    </div>
+
+    <script src="calculations.js"></script>
+    <script src="phase-diagram-tests.js"></script>
+    <script>
+        let totalResults = { pbSn: null, feC: null, leverLaw: null, calphad: null };
+        
+        function runAllTests() {
+            runPbSnTests();
+            runFeCTests();
+            runLeverLawTests();
+            runCALPHADTests();
+            updateSummary();
+        }
+        
+        function runPbSnTests() {
+            totalResults.pbSn = PbSnTests.runAllTests();
+            displayCategoryResults('Pb-Sn 相图测试', totalResults.pbSn, '#3498db', '📊');
+            updateSummary();
+        }
+        
+        function runFeCTests() {
+            totalResults.feC = FeCTests.runAllTests();
+            displayCategoryResults('Fe-C 铁碳相图测试', totalResults.feC, '#e74c3c', '⚙️');
+            updateSummary();
+        }
+        
+        function runLeverLawTests() {
+            totalResults.leverLaw = LeverLawTests.runAllTests();
+            displayCategoryResults('杠杆定律测试', totalResults.leverLaw, '#2ecc71', '⚖️');
+            updateSummary();
+        }
+        
+        function runCALPHADTests() {
+            totalResults.calphad = CALPHADTests.runAllTests();
+            displayCategoryResults('CALPHAD 热力学计算测试', totalResults.calphad, '#9b59b6', '🔬');
+            updateSummary();
+        }
+        
+        function displayCategoryResults(name, results, color, icon) {
+            const passRate = (results.passed / results.total * 100).toFixed(1);
+            const passColor = passRate >= 80 ? '#2ecc71' : '#e74c3c';
+            
+            let html = `
+                <div class="test-category" style="border-left-color: ${color};">
+                    <div class="category-header">
+                        <span class="category-title">${icon} ${name}</span>
+                        <span class="category-result" style="background: ${passColor};">
+                            ${results.passed}/${results.total} 通过 (${passRate}%)
+                        </span>
+                    </div>
+                    <div class="test-items">
+            `;
+            
+            results.results.forEach(r => {
+                const itemClass = r.passed ? 'test-pass' : 'test-fail';
+                const statusIcon = r.passed ? '✓' : '✗';
+                html += `
+                    <div class="test-item ${itemClass}">
+                        <div class="test-name">${statusIcon} ${r.name}</div>
+                        <div class="test-message">${r.message}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('testResults').innerHTML += html;
+        }
+        
+        function updateSummary() {
+            let totalPassed = 0;
+            let totalTests = 0;
+            let pbSnPass = 0, feCPass = 0, leverPass = 0, calphadPass = 0;
+            let pbSnTotal = 0, feCTotal = 0, leverTotal = 0, calphadTotal = 0;
+            
+            if (totalResults.pbSn) {
+                pbSnPass = totalResults.pbSn.passed;
+                pbSnTotal = totalResults.pbSn.total;
+                totalPassed += pbSnPass;
+                totalTests += pbSnTotal;
+            }
+            if (totalResults.feC) {
+                feCPass = totalResults.feC.passed;
+                feCTotal = totalResults.feC.total;
+                totalPassed += feCPass;
+                totalTests += feCTotal;
+            }
+            if (totalResults.leverLaw) {
+                leverPass = totalResults.leverLaw.passed;
+                leverTotal = totalResults.leverLaw.total;
+                totalPassed += leverPass;
+                totalTests += leverTotal;
+            }
+            if (totalResults.calphad) {
+                calphadPass = totalResults.calphad.passed;
+                calphadTotal = totalResults.calphad.total;
+                totalPassed += calphadPass;
+                totalTests += calphadTotal;
+            }
+            
+            const overallRate = totalTests > 0 ? (totalPassed / totalTests * 100).toFixed(1) : 0;
+            const rateColor = overallRate >= 80 ? '#2ecc71' : '#e74c3c';
+            
+            document.getElementById('summaryPanel').innerHTML = `
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #3498db;">${pbSnPass}/${pbSnTotal}</div>
+                        <div class="stat-label">Pb-Sn 相图</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #e74c3c;">${feCPass}/${feCTotal}</div>
+                        <div class="stat-label">Fe-C 相图</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #2ecc71;">${leverPass}/${leverTotal}</div>
+                        <div class="stat-label">杠杆定律</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #9b59b6;">${calphadPass}/${calphadTotal}</div>
+                        <div class="stat-label">CALPHAD 热力学</div>
+                    </div>
+                </div>
+                <div class="pass-rate" style="background: ${rateColor}20; color: ${rateColor};">
+                    总体通过率: ${overallRate}% (${totalPassed}/${totalTests})
+                </div>
+            `;
+        }
+        
+        document.getElementById('testResults').innerHTML = '';
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "phase-diagram-simulator",
+  "version": "1.0.0",
+  "description": "相图与材料科学模拟 - 二元合金相图模拟器",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.2"
+  },
+  "keywords": [
+    "phase-diagram",
+    "materials-science",
+    "alloy",
+    "simulation"
+  ],
+  "author": "",
+  "license": "MIT"
+}
